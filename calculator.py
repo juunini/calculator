@@ -13,7 +13,7 @@ class Main(QMainWindow):
                 main = QVBoxLayout()
                 window.setLayout(main)
                 self.setCentralWidget(window)
-                
+
                 window.setStyleSheet("QWidget{background: #000;color: #747a81}")
                 main.setContentsMargins(50, 50, 50, 50)
                 main.setSpacing(20)
@@ -65,8 +65,11 @@ class Main(QMainWindow):
                         screenSet(screen + "*0.")
                     elif screen[len(screen) - 1] != ")" and screen[len(screen) - 1] != "%" and screen[len(screen) - 1].isdigit() == False:
                         screenSet(screen + "0.")
+                    else:
+                        screenSet(screen + ".")
                 def Clean():
                     layout.screen.setText("")
+                    layout.screen_result.setText("")
                     global count
                     count = 0
                 def Plus():
@@ -74,25 +77,25 @@ class Main(QMainWindow):
                     if screen == "":
                         Error("에러", "맨 처음에 수식 부호를 넣을 수 없습니다.")
                     else :
-                        layout.screen.setText(screen + "+")
+                        layout.screen.setText(screen + "＋")
                 def Minus():
                     screen = layout.screen.toPlainText()
                     if screen == "":
                         Error("에러", "맨 처음에 수식 부호를 넣을 수 없습니다.")
                     else :
-                        layout.screen.setText(screen + "-")
+                        layout.screen.setText(screen + "－")
                 def Multiplication():
                     screen = layout.screen.toPlainText()
                     if screen == "":
                         Error("에러", "맨 처음에 수식 부호를 넣을 수 없습니다.")
                     else :
-                        layout.screen.setText(screen + "*")
+                        layout.screen.setText(screen + "×")
                 def Division():
                     screen = layout.screen.toPlainText()
                     if screen == "":
                         Error("에러", "맨 처음에 수식 부호를 넣을 수 없습니다.")
                     else :
-                        layout.screen.setText(screen + "/")
+                        layout.screen.setText(screen + "÷")
                 def Percent():
                     screen = layout.screen.toPlainText()
                     if screen == "":
@@ -141,9 +144,36 @@ class Main(QMainWindow):
                     layout.screen.setText(layout.screen_result.text())
                     layout.screen_result.setText("")
                 def DefaultCalculate():
-                    screen = layout.screen.toPlainText()
-                    result = module.Calculate(screen)
-                    layout.screen_result.setText(result)
+                    copy = layout.screen.toPlainText()
+                    copy = copy.replace('＋', '+').replace('－', '-').replace('×', '*').replace('÷', '/')
+                    global count
+
+                    for i in range(0, len(copy)):
+                        if copy[i] == "%":
+                            for j in range(i - 1, 0, -1):
+                                if i == len(copy) - 1:
+                                    if copy[j] != "." and copy[j].isdigit() == False:
+                                        copy = copy[0 : j + 1] + str(float(copy[j + 1 : -1] / 100))
+                                    else:
+                                        copy = str(float(copy[0 : -1]) / 100)
+                                else:
+                                    if copy[j] != "." and copy[j].isdigit() == False:
+                                        copy = copy[0 : j + 1] + str(float(copy[j + 1 : i] / 100)) + copy[i + 1 : len(copy)]
+                                    else:
+                                        copy = str(float(copy[0 : i]) / 100) + copy[i + 1 : len(copy)]
+
+                    if copy[len(copy) - 1] == "+" or copy[len(copy) - 1] == "-" or copy[len(copy) - 1] == "*" or copy[len(copy) - 1] == "/":
+                        copy = copy[0 : -1]
+
+                    if count != 0:
+                        copy = copy + ")" * count
+
+                    if len(copy) != 0:
+                        copy = str(eval(copy))
+
+                    if copy[-2 : len(copy)] == ".0":
+                        copy = copy[0 : -2]
+                    layout.screen_result.setText(copy)
 
 
                 layout.one.clicked.connect(One)
